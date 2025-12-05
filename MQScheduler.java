@@ -29,8 +29,8 @@ public class MQScheduler {
    public MQScheduler() {
       processes = new PriorityQueue<>(
         Comparator.comparingInt(Process::getArrivalTime)
-                  .thenComparingInt(Process::getProcessId)
-);
+            .thenComparingInt(Process::getProcessId)
+      );
 
       finishedProcesses = new LinkedList<>();
       contextSwitch = 2;
@@ -41,16 +41,17 @@ public class MQScheduler {
       ctxSwitchTime = 0;
    }
 
-   public MQScheduler(Process[] rawProcesses) {
+   public MQScheduler(LinkedList<Process> rawProcesses) {
       this();
       initiateProcesses(rawProcesses);
       initQueues();
       initPriorityQueues();
    }
 
-   private void initiateProcesses(Process[] rawProcesses) {
-      for(int i = 0; i < rawProcesses.length; i ++) 
-         processes.add(rawProcesses[i]);     // sorting all the processes based on their arrival time
+   private void initiateProcesses(LinkedList<Process> rawProcesses) {
+      for(var process : rawProcesses) {
+         processes.add(process);    // sorting all the processes based on their arrival time
+      }    
    }
 
    private void initQueues() {
