@@ -287,7 +287,7 @@ public class MQScheduler {
       finishedProcesses.sort((a, b) -> a.getProcessId() - b.getProcessId());
       System.out.println(
          String.format(
-            "%-12s %-10s %-13s %-11s %-12s %-13s %-13s %-16s %-13s",
+            "%-12s %-13s %-13s %-11s %-12s %-13s %-13s %-16s %-13s",
             "Process_id", "Type", "Arrival_time", "Burst_time", "Started_at", "Finished_at", "Waiting_time", "Turnaround_time", "Response_time"
          )
       );
@@ -305,7 +305,7 @@ public class MQScheduler {
          // );
          System.out.println(
             String.format(
-               "%-12d %-10s %-13d %-11d %-12d %-13d %-13d %-16d %-13d",
+               "%-12d %-13s %-13d %-11d %-12d %-13d %-13d %-16d %-13d",
                p.getProcessId(), p.getType(), p.getArrivalTime(), p.getBurstTime(), p.getStartedAt(), 
                p.getFinishedAt(), p.getWaitingTime(), p.getTurnaroundTime(), p.getResponseTime()
             )
