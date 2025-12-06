@@ -31,9 +31,10 @@ public class Process {
         this.responseTime = -1;
     }
 
-    public Process(String name, int arrivalTime, int burstTime, int priority, ProcessType processType) {
+    public Process(String name, int processId ,int arrivalTime, int burstTime, int priority, ProcessType processType) {
         processId = counter++;
         this.name = name;
+        this.processId = processId;
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.remainingTime = burstTime;
@@ -187,9 +188,10 @@ public class Process {
     @Override
     public String toString() {
         return String.format(
-            "[id=%-3d, name=%-6s, arrival=%-3d, burst=%-3d, start=%-3d, finish=%-3d, wait=%-3d, TAT=%-3d, resp=%-3d]",
+            "[id=%-3d, name=%-6s, arrival=%-3d, burst=%-3d, start=%-3d, finish=%-3d, wait=%-3d, TAT=%-3d, resp=%-3d, processType=%-10s]",
             processId, name, arrivalTime, burstTime, startedAt, finishedAt,
-            waitingTime, turnaroundTime, responseTime
+            waitingTime, turnaroundTime, responseTime, type.toString()
         );
     }
+
 }

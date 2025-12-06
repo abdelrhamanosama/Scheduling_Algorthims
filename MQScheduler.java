@@ -10,7 +10,7 @@ import java.util.Queue;
 */
 
 @SuppressWarnings({"unused", "unchecked"})
-public class MQScheduler {
+public class MQScheduler implements Scheduler{
    private final int NUMBER_OF_QUEUES = 4;
    private final int QUANTUM = 4;
    private Queue<Process>[] queues;

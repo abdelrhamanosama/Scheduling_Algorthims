@@ -1,12 +1,12 @@
+import java.util.Comparator;
 import java.util.LinkedList;
-import java.util.Queue;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.Comparator;
+import java.util.Queue;
 
-class RoundRobinScheduler {
+class RoundRobinScheduler implements Scheduler{
     private Queue<Process> readyQueue;
-    private int timeQuantum;
+    private int timeQuantum = -1;
     private LinkedList<Process> processes;
     private List<Process> finishedProcesses;
     private Process currentProcess;
@@ -23,8 +23,9 @@ class RoundRobinScheduler {
         this.processes = rawProcesses;
         this.finishedProcesses = new LinkedList<>();
     }
-
+    
     public void run() {
+        
         System.out.println("╔════════════════════════════════════════════════╗");
         System.out.println("║      Round Robin Scheduler Simulation          ║");
         System.out.println("╚════════════════════════════════════════════════╝\n");

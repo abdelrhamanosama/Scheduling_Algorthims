@@ -25,4 +25,10 @@ public enum ProcessType {
          default -> throw new IllegalArgumentException("Unknown type: " + s);
       };
    }
+
+    @Override
+    public String toString() {
+        return name().toUpperCase();
+    }
+   
 }

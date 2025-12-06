@@ -3,7 +3,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class MLFQScheduler {
+public class MLFQScheduler implements Scheduler{
     private Queue<Process>[] queues;
     private LinkedList<Process> allProcesses;
     private int currentTime;

@@ -1,6 +1,6 @@
 import java.util.*;
 
-public class PriorityScheduler {
+public class PriorityScheduler implements Scheduler{
 
     private LinkedList<Process> processes;
     private Queue<Process> readyQueue = new LinkedList<>();

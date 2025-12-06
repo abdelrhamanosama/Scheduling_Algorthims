@@ -1,51 +1,29 @@
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedList;
 
-public class FCFS {
-    LinkedList<Process> processList;
-    Queue<Process> waitingQueue;
-    Queue<Process> runningQueue;
-    
-    // Constructor
+public class FCFS implements Scheduler {
+    LinkedList<Process> processes;
+
     public FCFS(LinkedList<Process> processes) {
-        this.processList = processes;
-        this.waitingQueue = new LinkedList<>();
-        this.runningQueue = new LinkedList<>();
+        this.processes = processes;
     }
+    @Override
+    public void run() {
+        processes.sort(Comparator.comparingInt(Process::getArrivalTime));
+        int currentTime = 0;
+        System.out.println("=== FCFS Scheduling ===");
+        for (Process p : processes) {
 
-    public void runScheduler() {
-        // Sort processes by arrival time
-        processList.sort(Comparator.comparingInt(p -> p.getArrivalTime()));
-
-        int time = 0;
-        StringBuilder gantt = new StringBuilder();
-        int index = 0;
-        int n = processList.size();
-        // int 
-        while (index < n || !waitingQueue.isEmpty() || !runningQueue.isEmpty()) {
-            // Add newly arrived processes to waiting queue
-            while (index < n && processList.get(index).getArrivalTime() <= time) {
-                waitingQueue.add(processList.get(index));
-                index++;
+            if (currentTime < p.getArrivalTime()) {
+                currentTime = p.getArrivalTime();
             }
-
-            // Move process to running queue if CPU idle
-            if (runningQueue.isEmpty() && !waitingQueue.isEmpty()) {
-                runningQueue.add(waitingQueue.poll());
-            }
-
-            if (!runningQueue.isEmpty()) {
-                Process current = runningQueue.poll();
-                gantt.append("|").append(current.getName());
-                time += current.getBurstTime();
-            } else {
-                gantt.append("|IDLE");
-                time++;
-            }
+            p.setStartedAt(currentTime);
+            currentTime += p.getBurstTime();
+            p.setFinishedAt(currentTime);
+            p.calculateAllTimes();
+            System.out.println(p.toString());
         }
 
-        gantt.append("|");
-        System.out.println("Gantt Chart: " + gantt);
+        System.out.println("=== End FCFS ===");
     }
-
-    
 }

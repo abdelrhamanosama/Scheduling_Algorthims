@@ -1,7 +1,7 @@
-import java.util.LinkedList;
 import java.util.Iterator;
+import java.util.LinkedList;
 
-public class SRTScheduler {
+public class SRTScheduler implements Scheduler{
 
     private LinkedList<Process> processes;
     private LinkedList<Process> readyQueue;
@@ -17,7 +17,7 @@ public class SRTScheduler {
         this.totalTime = 0;
     }
 
-    public void schedule() {
+    public void run() {
         int currentTime = 0;
         int completed = 0;
         int n = processes.size();
