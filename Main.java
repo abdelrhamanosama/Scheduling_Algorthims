@@ -16,12 +16,16 @@ public class Main {
       Process k = new Process(25, 6, ProcessType.INTERACTIVE);
 
       LinkedList<Process> rawProcesses = new LinkedList<>();
-      rawProcesses.addAll(Arrays.asList(a, b, c, d, e, f, g, h, i, j, k));      
+      rawProcesses.addAll(Arrays.asList(a, b, c, d, e, f, g, h, i, j, k));
 
-      MQScheduler mqScheduler = new MQScheduler(rawProcesses);
-      mqScheduler.run();
+      // MQScheduler mqScheduler = new MQScheduler(rawProcesses);
+      // mqScheduler.run();
+
+      SRTScheduler srtScheduler = new SRTScheduler(rawProcesses);
+      srtScheduler.run();
+      srtScheduler.displayAllResults();
 
       // var RRS = new RoundRobinScheduler(rawProcesses, 6);
       // RRS.run();
    }
-}  
+}
