@@ -110,6 +110,34 @@ public class PriorityScheduler extends Scheduler {
         printStatsDetails();
     }
 
+    // private void printProcess(Process currentProcess) {
+    //     String batch = String.format(
+    //         "%-15s %s",
+    //         String.format("time %d-%d:", currentProcess.getStartedAt(), currentProcess.getFinishedAt()),   
+    //         currentProcess.trace()        
+    //     );
+    //     System.out.println(batch + "\n===");
+    //     try {
+    //         Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+    //     } catch (InterruptedException e) {
+    //         Thread.currentThread().interrupt(); // restore interrupt
+    //     }
+    // }
+
+    // private void printContextSwitch() {
+    //     String ctxSwitch = String.format(
+    //         "%-15s %s",
+    //         String.format("time %d-%d:", currentTime, currentTime + contextSwitch),   // time column
+    //         "Context Switching"
+    //     );
+    //     System.out.println(ctxSwitch + "\n===");
+    //     try {
+    //         Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+    //     } catch (InterruptedException e) {
+    //         Thread.currentThread().interrupt(); // restore interrupt
+    //     }
+    // }
+
     private void printProcessStatuses(LinkedList<Process> readyQueue) {
         System.out.println("[Time " + currentTime + "] Status:");
         for (Process p : processes) {

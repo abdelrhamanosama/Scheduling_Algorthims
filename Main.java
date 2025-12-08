@@ -14,9 +14,10 @@ public class Main {
       Process i = new Process(18, 8, ProcessType.INTERACTIVE);
       Process j = new Process(21, 15, ProcessType.REAL_TIME);
       Process k = new Process(25, 6, ProcessType.INTERACTIVE);
+      Process l = new Process(30, 10, ProcessType.REAL_TIME);
 
       LinkedList<Process> rawProcesses = new LinkedList<>();
-      rawProcesses.addAll(Arrays.asList(a, b, c, d, e, f, g, h, i, j, k));
+      rawProcesses.addAll(Arrays.asList(a, b, c, d, e, f, g, h, i, j, k, l));
 
       MQScheduler mqScheduler = new MQScheduler(rawProcesses);
       mqScheduler.run();

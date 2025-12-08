@@ -48,27 +48,64 @@ public class SJF_NonPreemptive extends  Scheduler {
             current.calculateAllTimes();
             busyTime += current.getBurstTime();
 
-            if (!processes.isEmpty() && processes.size() > 1) {
-                ctxSwitchTime += contextSwitch;
-                currentTime += contextSwitch;
-            }
+            // if (!processes.isEmpty() && processes.size() > 1) {
+            //     // printContextSwitch();
+            //     ctxSwitchTime += contextSwitch;
+            //     currentTime += contextSwitch;
+            // }
 
             finishedProcesses.add(current);
             processes.remove(current);
 
-            printProcessStatuses();
+            printProcess(current);
+
+            if (!processes.isEmpty()) {
+                printContextSwitch();
+                ctxSwitchTime += contextSwitch;
+                currentTime += contextSwitch;
+            }
+            // printProcessStatuses();
         }
 
         printStats();
     }
 
-    private void printProcessStatuses() {
-        for (Process p : processes) {
-            String status = p.getFinishedAt() != -1 ? "terminated" : "ready";
-            System.out.println(String.format("  %s : %s", p.getName(), status));
+    private void printProcess(Process currentProcess) {
+        String batch = String.format(
+            "%-15s %s",
+            String.format("time %d-%d:", currentProcess.getStartedAt(), currentProcess.getFinishedAt()),   
+            currentProcess.trace()        
+        );
+        System.out.println(batch + "\n===");
+        try {
+            Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore interrupt
         }
-        System.out.println();
     }
+
+    private void printContextSwitch() {
+        String ctxSwitch = String.format(
+            "%-15s %s",
+            String.format("time %d-%d:", currentTime, currentTime + contextSwitch),   // time column
+            "Context Switching"
+        );
+        System.out.println(ctxSwitch + "\n===");
+        try {
+            Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore interrupt
+        }
+    }
+
+    // private void printProcessStatuses() {
+    //     for (Process p : processes) {
+    //         String status = p.getFinishedAt() != -1 ? "terminated" : "ready";
+    //         System.out.println(String.format("  %s : %s", p.getName(), status));
+    //     }
+    //     System.out.println();
+    // }
+    
     private void printStats(){
         System.out.println("╔══════════════════════════════════════════════════════════╗");
         System.out.println("║           SJF Non-Preemptive Scheduling stats            ║");

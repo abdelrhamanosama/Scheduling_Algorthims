@@ -69,9 +69,9 @@ class RoundRobinScheduler extends  Scheduler{
                 currentTime += execTime;
                 busyTime += execTime;
 
-                System.out.printf("Time %d-%d: Executing Process %d for %d units\n", start, currentTime, proc.getProcessId(), execTime);
-                System.out.println("===");
-                try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                // System.out.printf("Time %d-%d: Executing Process %d for %d units\n", start, currentTime, proc.getProcessId(), execTime);
+                // System.out.println("===");
+                // try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
                 // move newly arrived processes into ready queue
                 while (!arrivals.isEmpty() && arrivals.peek().getArrivalTime() <= currentTime) {
@@ -85,11 +85,12 @@ class RoundRobinScheduler extends  Scheduler{
                     proc.calculateAllTimes();
                     finishedProcesses.add(proc);
                     completedProcesses++;
-                    System.out.printf("Time %d: Process %d completed\n", currentTime, proc.getProcessId());
-                    System.out.println("===");
-                    try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+                    // System.out.printf("Time %d: Process %d completed\n", currentTime, proc.getProcessId());
+                    // System.out.println("===");
+                    // try { Thread.sleep(500); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
                 }
-                printProcessStatuses();
+                printProcess(start, currentTime);
+                // printProcessStatuses();
             } else {
                 // no ready processes: advance to next arrival
                 if (!arrivals.isEmpty()) {
@@ -128,18 +129,32 @@ class RoundRobinScheduler extends  Scheduler{
         }
     }
 
-    private void printProcessStatuses() {
-        for (Process p : processes) {
-            String status;
-            if (p.getFinishedAt() != -1) {
-                status = "terminated";
-            } else {
-                status = "ready";
-            }
-            System.out.println(String.format("  %s : %s", p.getName(), status));
+    private void printProcess(int before, int currentTime) {
+        String batch = String.format(
+            "%-15s %s ",
+            String.format("time %d-%d:", before, currentTime),   
+            currentProcess.trace()
+        );
+        System.out.println(batch + "\n===");
+        try {
+            Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore interrupt
         }
-        System.out.println();
-    }
+   }
+
+    // private void printProcessStatuses() {
+    //     for (Process p : processes) {
+    //         String status;
+    //         if (p.getFinishedAt() != -1) {
+    //             status = "terminated";
+    //         } else {
+    //             status = "ready";
+    //         }
+    //         System.out.println(String.format("  %s : %s", p.getName(), status));
+    //     }
+    //     System.out.println();
+    // }
 
     public void printStatistics() {
         System.out.println("╔════════════════════════════════════════════════╗");

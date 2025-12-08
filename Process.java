@@ -1,5 +1,5 @@
 public class Process {
-    private static int counter = 0;
+    private static int counter = 1;
     private int processId;
     private int arrivalTime;
     private int burstTime;

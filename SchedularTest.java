@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
+@SuppressWarnings("resource")
 public class SchedularTest {
 
     public static void main(String[] args) {
@@ -46,42 +47,42 @@ public class SchedularTest {
 
     }
     private static Scheduler getScheduler(LinkedList<Process> p){
-    Scanner cin = new Scanner(System.in);
-    System.out.print("Choose algorithm: ");
-    int index = cin.nextInt();
+        Scanner cin = new Scanner(System.in);
+        System.out.print("Choose algorithm: ");
+        int index = cin.nextInt();
 
-    switch (index) {
-        case 0 -> {
-            return new FCFS(p);
-            }
-        case 1 -> {
-            return new SJF_NonPreemptive(p);
-            }
-        case 2 -> {
-            return new SRTScheduler(p);
-            }
-        case 3 -> {
-            System.out.println("please enter our time quantum");
-            int quentumtime = cin.nextInt();
-            return new RoundRobinScheduler(p,quentumtime);
-            }
-        case 4 -> {
-            System.out.println("please enter is preemptive 1 or 0");
-            int Preemptive = cin.nextInt();
-            return new PriorityScheduler(p,(Preemptive == 1? true : false));
-            }
-        case 5 -> {
-            return new MQScheduler(p);
-            }
-        case 6 -> {
-            return new MLFQScheduler(p);
-            }
-        default -> {
-            System.out.println("Invalid choice!");
-            return null;
-            }
+        switch (index) {
+            case 0 -> {
+                return new FCFS(p);
+                }
+            case 1 -> {
+                return new SJF_NonPreemptive(p);
+                }
+            case 2 -> {
+                return new SRTScheduler(p);
+                }
+            case 3 -> {
+                System.out.println("please enter our time quantum");
+                int quentumtime = cin.nextInt();
+                return new RoundRobinScheduler(p,quentumtime);
+                }
+            case 4 -> {
+                System.out.println("please enter is preemptive 1 or 0");
+                int Preemptive = cin.nextInt();
+                return new PriorityScheduler(p,(Preemptive == 1? true : false));
+                }
+            case 5 -> {
+                return new MQScheduler(p);
+                }
+            case 6 -> {
+                return new MLFQScheduler(p);
+                }
+            default -> {
+                System.out.println("Invalid choice!");
+                return null;
+                }
+        }
     }
-}
 
     private static String helpOptions() {
         Scanner cinOption = new Scanner(System.in);
@@ -176,6 +177,7 @@ public class SchedularTest {
             ));
         }
         System.out.println("Processes loaded successfully!");
+
         return processes;
     }
 }

@@ -102,11 +102,8 @@ public class MQScheduler extends  Scheduler{
       while (hasPendingProcesses()) {
          previousProcess = currentProcess;
 
-         // 1) move arrivals from future priority queues into ready queues
-         fillQueues();
-
-         // 2) select highest-priority non-empty ready queue
-         int selected = selectHigherPriority();
+         fillQueues();                             // 1) move arrivals from future priority queues into ready queues    
+         int selected = selectHigherPriority();    // 2) select highest-priority non-empty ready queue
 
          // all Qs are empty -- no ready processes -- arrival time not reached yet
          // advance time to next arrival (fast-forward)
@@ -125,46 +122,58 @@ public class MQScheduler extends  Scheduler{
          // we have a process to run
          var proc = queues[selected].poll();
          currentProcess = proc;
-
-         if(previousProcess != null && currentProcess != null && previousProcess.getProcessId() != currentProcess.getProcessId()) {            
-            printContextSwitch();
-            currentTime += contextSwitch;
-            // account for context-switch time
-            ctxSwitchTime += contextSwitch;
-         }
+         checkForContextSwitch();
 
          // compute time until next arrival from a higher priority queue
          Integer nextHigher = nextArrivalTimeHigherPriority(selected);
          int timeUntilNextHigher = (nextHigher == null) ? Integer.MAX_VALUE : Math.max(0, nextHigher - currentTime);
          int runFor = allowedRunningTime(selected, timeUntilNextHigher, proc);
 
-         // set response time if this is the first time the process runs        
-         if (proc.getResponseTime() == -1) {
-            proc.setStartedAt(currentTime);
-            proc.setResponseTime(currentTime - proc.getArrivalTime());  // response time = start - arrive
-         }
+         setResponseTime(proc);
 
          // execute for runFor time units (decrement remaining) and log each time unit
          int before = currentTime;
-         for (int t = 0; t < runFor; t++) {
-            proc.decrement();
-            currentTime++;
-            // account as busy CPU time
-            busyTime++;
-            fillQueues();     // move arrivals that have become ready at this time instant
-            // sleep one tick so the simulation is visible
-         }
+         execute(proc, runFor);
+         checkForCompletion(proc, before, selected);  // 4) update completion / requeue
+      }
+   }
 
-         // 4) update completion / requeue
-         proc.setFinishedAt(currentTime);
+   private void checkForCompletion(Process proc, int before, int selected) {
+      proc.setFinishedAt(currentTime);
 
-         printProcess(before, selected);
-         if (proc.end()) {
-            updateProcess(proc);            
-         } else {
-            queues[selected].add(proc);      // no-feedback: stays in same queue
-         }    
-         printProcessStatuses();      
+      printProcess(before, selected);
+      if (proc.end()) {
+         updateProcess(proc);            
+      } else {
+         queues[selected].add(proc);      // no-feedback: stays in same queue
+      }
+   }
+
+   private void setResponseTime(Process proc) {
+      // set response time if this is the first time the process runs        
+      if (proc.getResponseTime() == -1) {
+         proc.setStartedAt(currentTime);
+         proc.setResponseTime(currentTime - proc.getArrivalTime());  // response time = start - arrive
+      }
+   }
+
+   private void checkForContextSwitch() {
+      if(previousProcess != null && currentProcess != null && previousProcess.getProcessId() != currentProcess.getProcessId()) {            
+         printContextSwitch();
+         currentTime += contextSwitch;
+         // account for context-switch time
+         ctxSwitchTime += contextSwitch;
+      }
+   }
+
+   private void execute(Process proc, int runFor) {
+      for (int t = 0; t < runFor; t++) {
+         proc.decrement();
+         currentTime++;
+         // account as busy CPU time
+         busyTime++;
+         fillQueues();     // move arrivals that have become ready at this time instant
+         // sleep one tick so the simulation is visible
       }
    }
 

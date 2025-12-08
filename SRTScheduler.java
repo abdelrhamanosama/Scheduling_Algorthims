@@ -50,9 +50,11 @@ public class SRTScheduler extends Scheduler {
             // Context switch
             if (currentProcess != null &&
                 currentProcess.getProcessId() != nextProcess.getProcessId()) {
+                // currentProcess.setFinishedAt(currentTime);
 
                 contextSwitches++;
                 currentTime += ctxSwitchTime;
+                // printContextSwitch();
             }
 
             currentProcess = nextProcess;
@@ -73,26 +75,56 @@ public class SRTScheduler extends Scheduler {
                 nextProcess.calculateAllTimes();
                 finishedProcesses.add(nextProcess);
                 readyQueue.remove(nextProcess);
+                printProcess(nextProcess);
             }
 
-            printProcessStatuses(readyQueue);
+            // printProcess(currentProcess);
+            // printProcessStatuses(readyQueue);
         }
 
         printStats();
     }
 
-    private void printProcessStatuses(LinkedList<Process> readyQueue) {
-        System.out.println("[Time " + currentTime + "] Status:");
-        for (Process p : processes) {
-            String status;
-            if (finishedProcesses.contains(p)) status = "terminated";
-            else if (readyQueue.contains(p)) status = "ready";
-            else status = "waiting";
-
-            System.out.println(String.format("  %s : %s", p.getName(), status));
+    private void printProcess(Process currentProcess) {
+        String batch = String.format(
+            "%-15s %s",
+            String.format("time %d-%d:", currentProcess.getStartedAt(), currentProcess.getFinishedAt()),
+            currentProcess.trace()
+        );
+        System.out.println(batch + "\n===");
+        try {
+            Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // restore interrupt
         }
-        System.out.println();
-    }
+   }
+
+   // private void printContextSwitch() {
+    //     String ctxSwitch = String.format(
+    //         "%-15s %s",
+    //         String.format("time %d-%d:", currentTime, currentTime + ctxSwitchTime),   // time column
+    //         "Context Switching"
+    //     );
+    //     System.out.println(ctxSwitch + "\n===");
+    //     try {
+    //         Thread.sleep(500); // pause 500 milliseconds (0.5 seconds)
+    //     } catch (InterruptedException e) {
+    //         Thread.currentThread().interrupt(); // restore interrupt
+    //     }
+    // }
+
+    // private void printProcessStatuses(LinkedList<Process> readyQueue) {
+    //     System.out.println("[Time " + currentTime + "] Status:");
+    //     for (Process p : processes) {
+    //         String status;
+    //         if (finishedProcesses.contains(p)) status = "terminated";
+    //         else if (readyQueue.contains(p)) status = "ready";
+    //         else status = "waiting";
+
+    //         System.out.println(String.format("  %s : %s", p.getName(), status));
+    //     }
+    //     System.out.println();
+    // }
 
     private void printStats() {
         System.out.println("╔════════════════════════════════════════════════╗");
