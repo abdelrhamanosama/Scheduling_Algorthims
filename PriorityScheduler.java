@@ -1,108 +1,138 @@
 import java.util.*;
 
-public class PriorityScheduler implements Scheduler{
+public class PriorityScheduler extends Scheduler {
 
     private LinkedList<Process> processes;
-    private Queue<Process> readyQueue = new LinkedList<>();
-    private Queue<Process> waitingQueue = new LinkedList<>();
-
-    private int time = 0;
+    private List<Process> finishedProcesses;
+    private int currentTime = 0;
+    private final int contextSwitch = 2;
+    private int busyTime = 0;
+    private int idleTime = 0;
+    private int ctxSwitchCount = 0;
     private boolean isPreemptive;
 
     public PriorityScheduler(LinkedList<Process> processes, boolean isPreemptive) {
+
         this.processes = processes;
+        this.finishedProcesses = new LinkedList<>();
         this.isPreemptive = isPreemptive;
 
-        processes.sort(Comparator.comparingInt(p -> p.getArrivalTime()));
+        processes.sort(Comparator.comparingInt(Process::getArrivalTime));
     }
 
+    @Override
     public void run() {
+        System.out.println("╔════════════════════════════════════════════════════════╗");
+        if (isPreemptive)
+            System.out.println("║        Priority Scheduling (Preemptive)               ║");
+        else
+            System.out.println("║      Priority Scheduling (Non-Preemptive)             ║");
+        System.out.println("╚════════════════════════════════════════════════════════╝\n");
 
-        System.out.println(isPreemptive ?
-                "=== Priority Scheduling (Preemptive) ===" :
-                "=== Priority Scheduling (Non-Preemptive) ===");
+        LinkedList<Process> readyQueue = new LinkedList<>();
+        Process currentProcess = null;
 
-        List<Process> finished = new ArrayList<>();
+        while (finishedProcesses.size() < processes.size()) {
 
-        while (finished.size() < processes.size()) {
-
-            // 1) add arrived processes to readyQueue
+            // add newly arrived processes
             for (Process p : processes) {
-                if (p.getArrivalTime() <= time && p.getRemainingTime() > 0 && !readyQueue.contains(p) && !finished.contains(p)) {
+                if (p.getArrivalTime() <= currentTime &&
+                        p.getRemainingTime() > 0 &&
+                        !readyQueue.contains(p) &&
+                        !finishedProcesses.contains(p)) {
                     readyQueue.add(p);
                 }
             }
 
-            printStatus();
-
-            // idle CPU
             if (readyQueue.isEmpty()) {
-                time++;
+                idleTime++;
+                currentTime++;
                 continue;
             }
 
-            // 2) pick highest priority
-            Process currProcess = getHighestPriority();
+            // pick highest priority
+            Process nextProcess = readyQueue.stream()
+                    .min(Comparator.comparingInt(Process::getPriority))
+                    .get();
 
-            System.out.println("Time " + time + ": Running " + currProcess.getName());
+            // Context switch
+            if (currentProcess != nextProcess) {
+                if(currentProcess != null){
+                    
+                if (!isPreemptive && currentProcess.getRemainingTime() > 0) {
+                    nextProcess = currentProcess;  // ignore new higher priority
+                } else {
+                    ctxSwitchCount++;
+                    currentTime += contextSwitch;
+                    currentProcess = nextProcess;
+                }
+                }
+                else{
+                    currentProcess = nextProcess;
+                }
+            }
+
+            // first time execution
+            if (nextProcess.getStartedAt() == -1) {
+                nextProcess.setStartedAt(currentTime);
+                nextProcess.setResponseTime(currentTime - nextProcess.getArrivalTime());
+            }
 
             if (isPreemptive) {
-                // ========== PREEMPTIVE PHASE ==========
-                currProcess.setRemainingTime((currProcess.getRemainingTime()-1));
-                time++;
 
-                if (currProcess.getRemainingTime() == 0) {
-                    currProcess.setTurnaroundTime ( time - currProcess.getArrivalTime());
-                    currProcess.setWaitingTime( currProcess.getTurnaroundTime() - currProcess.getBurstTime());
-                    finished.add(currProcess);
-                    readyQueue.remove(currProcess);
+                nextProcess.setRemainingTime(nextProcess.getRemainingTime() - 1);
+                busyTime++;
+                currentTime++;
+
+                if (nextProcess.getRemainingTime() == 0) {
+                    nextProcess.setFinishedAt(currentTime);
+                    nextProcess.calculateAllTimes();
+                    finishedProcesses.add(nextProcess);
+                    readyQueue.remove(nextProcess);
                 }
 
             } else {
-                // ========== NON-PREEMPTIVE PHASE ==========
-                time += currProcess.getRemainingTime();
-                currProcess.setRemainingTime(0);
 
-                currProcess.setTurnaroundTime(time - currProcess.getArrivalTime());
-                currProcess.setWaitingTime(currProcess.getTurnaroundTime() - currProcess.getBurstTime());
+                int runTime = nextProcess.getRemainingTime();
+                currentTime += runTime;
+                busyTime += runTime;
 
-                finished.add(currProcess);
-                readyQueue.remove(currProcess);
+                nextProcess.setRemainingTime(0);
+                nextProcess.setFinishedAt(currentTime);
+                nextProcess.calculateAllTimes();
+                finishedProcesses.add(nextProcess);
+                readyQueue.remove(nextProcess);
             }
+
+            printProcessStatuses(readyQueue);
         }
 
-        printFinalTable();
+        printStatsDetails();
     }
 
-    private Process getHighestPriority() {
-        // smaller priority value = higher priority
-        return readyQueue.stream()
-                .min(Comparator.comparingInt(p -> p.getPriority()))
-                .get();
-    }
-
-    private void printStatus() {
-        System.out.println("\nTime " + time + " Status:");
-
-        System.out.print("Ready Queue: ");
-        for (Process p : readyQueue)
-            System.out.print(p.getName() + "(P=" + p.getPriority() + ") ");
-        System.out.println();
-
-        System.out.print("Waiting Queue: ");
-        for (Process p : waitingQueue) System.out.print(p.getName() + " ");
-        System.out.println();
-    }
-
-    private void printFinalTable() {
-        System.out.println("\n====================================================");
-        System.out.println("Name | Arr | Burst | Priority | Waiting | Turnaround");
-
+    private void printProcessStatuses(LinkedList<Process> readyQueue) {
+        System.out.println("[Time " + currentTime + "] Status:");
         for (Process p : processes) {
-            System.out.printf(
-                    "%4s | %3d | %5d | %8d | %7d | %10d\n",
-                    p.getName(), p.getArrivalTime(), p.getBurstTime(), p.getPriority(), p.getWaitingTime(), p.getTurnaroundTime()
-            );
+            String status;
+            if (finishedProcesses.contains(p)) status = "terminated";
+            else if (readyQueue.contains(p)) status = "ready";
+            else status = "waiting";
+
+            System.out.println(String.format("  %s : %s", p.getName(), status));
         }
+        System.out.println();
+    }
+
+    private void printStatsDetails() {
+
+
+        System.out.println("╔════════════════════════════════════════════════════════╗");
+        if (isPreemptive)
+            System.out.println("║        Priority Scheduling (Preemptive)               ║");
+        else
+            System.out.println("║      Priority Scheduling (Non-Preemptive)             ║");
+        System.out.println("╚════════════════════════════════════════════════════════╝\n");
+
+        super.printStatsDetials(finishedProcesses, busyTime, idleTime,ctxSwitchCount * contextSwitch);
     }
 }

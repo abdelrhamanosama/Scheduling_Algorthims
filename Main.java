@@ -18,12 +18,12 @@ public class Main {
       LinkedList<Process> rawProcesses = new LinkedList<>();
       rawProcesses.addAll(Arrays.asList(a, b, c, d, e, f, g, h, i, j, k));
 
-      // MQScheduler mqScheduler = new MQScheduler(rawProcesses);
-      // mqScheduler.run();
+      MQScheduler mqScheduler = new MQScheduler(rawProcesses);
+      mqScheduler.run();
 
-      SRTScheduler srtScheduler = new SRTScheduler(rawProcesses);
-      srtScheduler.run();
-      srtScheduler.displayAllResults();
+      // SRTScheduler srtScheduler = new SRTScheduler(rawProcesses);
+      // srtScheduler.run();
+      // srtScheduler.displayAllResults();
 
       // var RRS = new RoundRobinScheduler(rawProcesses, 6);
       // RRS.run();

@@ -51,22 +51,35 @@ public class SchedularTest {
     int index = cin.nextInt();
 
     switch (index) {
-        case 0: return new FCFS(p);
-        case 1: return new SJF_NonPreemptive(p);
-        case 2: return new SRTScheduler(p);
-        case 3: 
-        System.out.println("please enter our time quantum");
-        int quentumtime = cin.nextInt();
-        return new RoundRobinScheduler(p,quentumtime);
-        case 4: 
-        System.out.println("please enter is preemptive 1 or 0");
-        int Preemptive = cin.nextInt();
-        return new PriorityScheduler(p,(Preemptive == 1? true : false));
-        case 5: return new MQScheduler(p);
-        case 6: return new MLFQScheduler(p);
-        default:
+        case 0 -> {
+            return new FCFS(p);
+            }
+        case 1 -> {
+            return new SJF_NonPreemptive(p);
+            }
+        case 2 -> {
+            return new SRTScheduler(p);
+            }
+        case 3 -> {
+            System.out.println("please enter our time quantum");
+            int quentumtime = cin.nextInt();
+            return new RoundRobinScheduler(p,quentumtime);
+            }
+        case 4 -> {
+            System.out.println("please enter is preemptive 1 or 0");
+            int Preemptive = cin.nextInt();
+            return new PriorityScheduler(p,(Preemptive == 1? true : false));
+            }
+        case 5 -> {
+            return new MQScheduler(p);
+            }
+        case 6 -> {
+            return new MLFQScheduler(p);
+            }
+        default -> {
             System.out.println("Invalid choice!");
             return null;
+            }
     }
 }
 

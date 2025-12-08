@@ -1,34 +1,48 @@
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-public class MLFQScheduler implements Scheduler{
+public class MLFQScheduler extends  Scheduler {
     private Queue<Process>[] queues;
     private LinkedList<Process> allProcesses;
     private int currentTime;
-    private int contextSwitches;
+    private final int contextSwitches;
     private int lastBoostTime;
     private Process currentProcess;
 
+    private List<Process> finishedProcesses;
+
+    private int busyTime;
+    private int idleTime;
+    private int ctxSwitchTime;
+
     private static final int BOOST_INTERVAL = 20;
 
+    @SuppressWarnings("unchecked")
     public MLFQScheduler(List<Process> processes) {
-        Queue<Process>[] q = (Queue<Process>[]) new LinkedList[3];
-        this.queues = q;
+
+        this.queues = (Queue<Process>[]) new Queue[3];
         this.queues[0] = new LinkedList<>();
         this.queues[1] = new LinkedList<>();
         this.queues[2] = new LinkedList<>();
 
         this.allProcesses = new LinkedList<>(processes);
+
         this.currentTime = 0;
-        this.contextSwitches = 0;
+        this.contextSwitches = 2;
         this.lastBoostTime = 0;
         this.currentProcess = null;
+
+        this.finishedProcesses = new LinkedList<>();
+        this.busyTime = 0;
+        this.idleTime = 0;
+        this.ctxSwitchTime = 0;
     }
 
     public void run() {
-        System.out.println("=== MLFQ Scheduler Started ===\n");
+        System.out.println("╔═════════════════════════════════════════════════════════╗");
+        System.out.println("║       Multi-Level Feedback Queue Scheduler Trace        ║");
+        System.out.println("╚═════════════════════════════════════════════════════════╝\n");
 
         while (!isComplete()) {
 
@@ -42,20 +56,24 @@ public class MLFQScheduler implements Scheduler{
             if (currentProcess == null) {
                 currentProcess = selectNextProcess();
                 if (currentProcess != null) {
-                    contextSwitches++;
+                    ctxSwitchTime += contextSwitches;
+                    currentTime += contextSwitches;
                 }
             }
 
             if (currentProcess != null) {
+                busyTime++;
                 executeProcess(currentProcess);
+                printProcessStatuses();
             } else {
-
+                idleTime++;
                 currentTime++;
             }
 
             updateWaitingTimes();
+            
         }
-
+        printStats();    
         calculateMetrics();
     }
 
@@ -64,17 +82,11 @@ public class MLFQScheduler implements Scheduler{
             if (p.getArrivalTime() == currentTime) {
                 queues[0].offer(p);
                 p.currentQueue = 0;
-
-                if (currentProcess != null && currentProcess.currentQueue > 0) {
-                    queues[currentProcess.currentQueue].offer(currentProcess);
-                    currentProcess = null;
-                }
             }
         }
     }
 
     private Process selectNextProcess() {
-
         for (int i = 0; i < 3; i++) {
             if (!queues[i].isEmpty()) {
                 return queues[i].poll();
@@ -88,45 +100,17 @@ public class MLFQScheduler implements Scheduler{
         currentTime++;
 
         if (completed) {
-
             p.setFinishedAt(currentTime);
+            finishedProcesses.add(p);
             currentProcess = null;
-            printProcessStatuses(p);
         } else if (p.isQuantumExhausted()) {
-
             p.demote();
             queues[p.currentQueue].offer(p);
             currentProcess = null;
         }
     }
-    private void printProcessStatuses(Process completedProcess) {
-        System.out.println("[Time " + currentTime + "] Process '" + completedProcess.getName() + "' completed. Statuses:");
-        for (Process p : allProcesses) {
-            String status;
-            if (p.getRemainingTime() == 0) {
-                status = "terminated";
-            } else if (p == currentProcess) {
-                status = "running";
-            } else if (isInQueues(p)) {
-                status = "ready";
-            } else {
-                status = "waiting";
-            }
-
-            System.out.println(String.format("  %s : %s", p.getName(), status));
-        }
-        System.out.println();
-    }
-        private boolean isInQueues(Process p) {
-        for (Queue<Process> queue : queues) {
-            if (queue.contains(p))
-                return true;
-        }
-        return false;
-    }
 
     private void performPriorityBoost() {
-
         LinkedList<Process> toBoost = new LinkedList<>();
 
         for (int i = 1; i < 3; i++) {
@@ -152,64 +136,47 @@ public class MLFQScheduler implements Scheduler{
 
     private void updateWaitingTimes() {
         for (Process p : allProcesses) {
-            if (p.getArrivalTime() <= currentTime && p.getRemainingTime() > 0 && p != currentProcess) {
-                p.setWaitingTime(p.getWaitingTime()+1);
+            if (p.getArrivalTime() <= currentTime &&
+                p.getRemainingTime() > 0 &&
+                p != currentProcess &&
+                !p.isQuantumExhausted()) {
+
+                p.setWaitingTime(p.getWaitingTime() + 1);
             }
         }
     }
 
     private boolean isComplete() {
-
         for (Process p : allProcesses) {
-            if (p.getRemainingTime() > 0) {
+            if (p.getRemainingTime() > 0)
                 return false;
-            }
         }
         return true;
     }
 
-    private boolean hasRemainingProcesses() {
-        for (Process p : allProcesses) {
-            if (p.getArrivalTime() > currentTime) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private void calculateMetrics() {
         for (Process p : allProcesses) {
-            p.setTurnaroundTime(  p.getFinishedAt() - p.getArrivalTime() );
+            p.setTurnaroundTime(p.getFinishedAt() - p.getArrivalTime());
         }
     }
 
-    public void displayResults() {
-
-        System.out.println("=== PROCESS METRICS ===");
-        System.out.println(String.format("%-10s %-8s %-8s %-10s %-10s %-10s %-10s",
-                "Process", "Arrival", "Burst", "Completion", "Waiting", "Turnaround", "Response"));
-        System.out.println("-".repeat(78));
-
-        int totalWaiting = 0;
-        int totalTurnaround = 0;
-        int totalResponse = 0;
-
+    private void printProcessStatuses() {
         for (Process p : allProcesses) {
-            System.out.println(p.toString());
-
-            totalWaiting += p.getWaitingTime();
-            totalTurnaround += p.getTurnaroundTime();
-            totalResponse += p.getResponseTime();
+            String status;
+            if (p.getFinishedAt() != -1) {
+                status = "terminated";
+            } else {
+                status = "ready";
+            }
+            System.out.println(String.format("  %s : %s", p.getName(), status));
         }
-
-        int n = allProcesses.size();
-        System.out.println("-".repeat(78));
-        System.out.println(String.format("Average: %46s %-10.2f %-10.2f %-10.2f",
-                "", (double) totalWaiting / n, (double) totalTurnaround / n, (double) totalResponse / n));
-
-        System.out.println("\n=== SCHEDULER METRICS ===");
-        System.out.println("Context Switches: " + contextSwitches);
-        System.out.println("Total Time: " + currentTime);
         System.out.println();
+    }
+
+    private void printStats(){
+        System.out.println("╔═══════════════════════════════════════════════════╗");
+        System.out.println("║      Multi-Level Feedback Queue Scheduler Stats   ║");
+        System.out.println("╚═══════════════════════════════════════════════════╝\n");
+        super.printStatsDetials(finishedProcesses, busyTime, idleTime, ctxSwitchTime);
     }
 }

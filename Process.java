@@ -20,7 +20,7 @@ public class Process {
     public Process(int arrivalTime, int burstTime, ProcessType type) {
         processId = counter++;
         this.arrivalTime = arrivalTime;
-        this.finishedAt = arrivalTime;
+        this.finishedAt = -1;
         this.burstTime = burstTime;
         this.remainingTime = burstTime;
         this.type = type;
@@ -39,7 +39,7 @@ public class Process {
         this.burstTime = burstTime;
         this.remainingTime = burstTime;
         this.priority = priority;
-        this.finishedAt = 0;
+        this.finishedAt = -1;
         this.turnaroundTime = 0;
         this.waitingTime = 0;
         this.type = processType;
